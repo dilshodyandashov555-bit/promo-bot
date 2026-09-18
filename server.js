@@ -21,6 +21,9 @@ async function initDatabase() {
 
 const TARGET_URL = 'https://play.google.com/store/apps/details?id=com.baxtiyorov.security';
 
+// Brauzer avtomatik so'raydigan favicon.ico so'rovini statistikaga qo'shmasdan bloklash
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.get('/', (req, res) => {
     res.redirect(TARGET_URL);
 });
@@ -31,7 +34,10 @@ app.get('/stats', async (req, res) => {
         const result = await pool.query("SELECT link_id, clicks FROM click_stats;");
         const statistika = {};
         result.rows.forEach(row => {
-            statistika[row.link_id] = row.clicks;
+            // Agar bazada eski favicon.ico ma'lumoti qolgan bo'lsa, uni statistikada ko'rsatmaslik
+            if (row.link_id !== 'favicon.ico') {
+                statistika[row.link_id] = row.clicks;
+            }
         });
         res.json({
             system: "Click Statistics",
@@ -44,6 +50,12 @@ app.get('/stats', async (req, res) => {
 
 app.get('/:linkId', async (req, res) => {
     const linkId = req.params.linkId.toLowerCase();
+    
+    // Agar linkId tasodifan favicon.ico bo'lib qolsa, davom ettirmaslik
+    if (linkId === 'favicon.ico') {
+        return res.status(204).end();
+    }
+
     try {
         await initDatabase();
         
