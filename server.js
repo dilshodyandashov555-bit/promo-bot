@@ -63,7 +63,7 @@ app.get('/qr/:linkId', async (req, res) => {
     }
 
     // Har bir viloyat uchun to'g'ri va alohida dinamik havola (slesh qo'shildi)
-    const dynamicLink = "https://onrender.com" + linkId;
+    const dynamicLink = 'https://onrender.com\${linkId}';
 
     try {
         const qrBuffer = await QRCode.toBuffer(dynamicLink, {
