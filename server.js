@@ -7,7 +7,7 @@ let clickStats = {
     "navoiy": 0
 };
 
-const TARGET_URL = "https://google.com";
+const TARGET_URL = "https://play.google.com/store/apps/details?id=com.baxtiyorov.security";
 
 app.get('/r/:linkId', (req, res) => {
     const linkId = req.params.linkId;
