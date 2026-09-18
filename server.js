@@ -27,7 +27,5 @@ app.get('/stats', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(Server ${PORT}-portda yonishga tayyor);
-});
-    console.log(Server ${PORT}-portda yonishga tayyor);
+    console.log("Server yonishga tayyor");
 });
