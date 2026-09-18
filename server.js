@@ -1,5 +1,6 @@
 const express = require('express');
 const { Pool } = require('pg');
+const QRCode = require('qrcode'); // Yangi QR kutubxonasi qo'shildi
 const app = express();
 const PORT = process.env.PORT || 10000;
 
@@ -21,20 +22,20 @@ async function initDatabase() {
 
 const TARGET_URL = 'https://play.google.com/store/apps/details?id=com.baxtiyorov.security';
 
-// Brauzer avtomatik so'raydigan favicon.ico so'rovini statistikaga qo'shmasdan bloklash
+// Favicon so'rovini bloklash
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 app.get('/', (req, res) => {
     res.redirect(TARGET_URL);
 });
 
+// JSON Statistika sahifasi
 app.get('/stats', async (req, res) => {
     try {
         await initDatabase();
         const result = await pool.query("SELECT link_id, clicks FROM click_stats;");
         const statistika = {};
         result.rows.forEach(row => {
-            // Agar bazada eski favicon.ico ma'lumoti qolgan bo'lsa, uni statistikada ko'rsatmaslik
             if (row.link_id !== 'favicon.ico') {
                 statistika[row.link_id] = row.clicks;
             }
@@ -48,10 +49,38 @@ app.get('/stats', async (req, res) => {
     }
 });
 
+// --- YANGI: AVTOMATIK QR-KOD GENERATSIYA QILISH ---
+// Masalan: /qr/buxoro yoki /qr/navoiy deb kirilsa, rasm qaytaradi
+app.get('/qr/:linkId', async (req, res) => {
+    const linkId = req.params.linkId.toLowerCase();
+    
+    if (linkId === 'favicon.ico') {
+        return res.status(204).end();
+    }
+
+    // Foydalanuvchi skaner qilganda o'tadigan viloyat havolasi
+    const dynamicLink = "https://onrender.com" + linkId;
+
+    try {
+        // QR-kodni PNG rasm ko'rinishida generatsiya qilish
+        const qrBuffer = await QRCode.toBuffer(dynamicLink, {
+            type: 'png',
+            margin: 2,
+            width: 300 // Rasm o'lchami (300x300 piksel)
+        });
+
+        res.type('png');
+        res.send(qrBuffer);
+    } catch (err) {
+        console.error("QR Error:", err.message);
+        res.status(500).send("QR-kod yaratishda xatolik yuz berdi");
+    }
+});
+
+// Ilovaga yo'naltirish va klikni hisoblash
 app.get('/:linkId', async (req, res) => {
     const linkId = req.params.linkId.toLowerCase();
     
-    // Agar linkId tasodifan favicon.ico bo'lib qolsa, davom ettirmaslik
     if (linkId === 'favicon.ico') {
         return res.status(204).end();
     }
