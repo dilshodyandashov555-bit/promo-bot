@@ -3,10 +3,8 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const dbUrl = process.env.DATABASE_URL;
-
 const pool = new Pool({
-    connectionString: dbUrl,
+    connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
@@ -15,13 +13,13 @@ async function initDatabase() {
         await pool.query("CREATE TABLE IF NOT EXISTS click_stats (link_id VARCHAR(50) PRIMARY KEY, clicks INT DEFAULT 0);");
         await pool.query("INSERT INTO click_stats (link_id, clicks) VALUES ('buxoro', 0) ON CONFLICT (link_id) DO NOTHING;");
         await pool.query("INSERT INTO click_stats (link_id, clicks) VALUES ('navoiy', 0) ON CONFLICT (link_id) DO NOTHING;");
+        console.log("Baza tayyor.");
     } catch (err) {
-        console.error(err.message);
+        console.error("Bazada xato:", err.message);
     }
 }
 initDatabase();
 
-// 📥 SIZNING ILAVANGIZNING ASOSIY HAVOLASI SHU YERDA:
 const TARGET_URL = 'https://play.google.com/store/apps/details?id=com.baxtiyorov.security'; 
 
 app.get('/r/:linkId', async (req, res) => {
@@ -32,7 +30,7 @@ app.get('/r/:linkId', async (req, res) => {
             await pool.query("INSERT INTO click_stats (link_id, clicks) VALUES ($1, 1);", [linkId]);
         }
     } catch (err) {
-        console.error(err.message);
+        console.error("Klik yozishda xato:", err.message);
     }
     res.redirect(TARGET_URL);
 });
@@ -50,4 +48,6 @@ app.get('/stats', async (req, res) => {
     }
 });
 
-app.listen(PORT);
+app.listen(PORT, () => {
+    console.log("Server yondi.");
+});
