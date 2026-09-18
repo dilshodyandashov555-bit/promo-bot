@@ -61,10 +61,11 @@ app.get('/:linkId', async (req, res) => {
     try {
         await initDatabase(); // Bazani tekshirib olish
         
-        // Klikni oshirish
+        // Klikni oshirish (\$1 to'g'ri yozildi)
         const resUpdate = await pool.query('UPDATE click_stats SET clicks = clicks + 1 WHERE link_id = \$1 RETURNING *;', [linkId]);
         
         if (resUpdate.rowCount === 0) {
+            // Yangi qator qo'shish (\$1 to'g'ri yozildi)
             await pool.query('INSERT INTO click_stats (link_id, clicks) VALUES (\$1, 1);', [linkId]);
         }
 
