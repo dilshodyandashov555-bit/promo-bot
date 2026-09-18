@@ -23,7 +23,10 @@ async function initDatabase() {
         console.error("Bazani yaratishda xato bo'ldi:", err.message);
     }
 }
-
+// Agar oxirida hech qanday ID bo'lmasa, to'g'ri ilovaga o'tkazish
+app.get('/', (req, res) => {
+    res.redirect(TARGET_URL);
+});
 const TARGET_URL = 'https://play.google.com/store/apps/details?id=com.baxtiyorov.security'; 
 
 // 1. Ilovaga yo'naltirish linki
