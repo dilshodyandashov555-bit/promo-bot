@@ -13,9 +13,9 @@ async function initDatabase() {
         await pool.query('CREATE TABLE IF NOT EXISTS click_stats (link_id VARCHAR(50) PRIMARY KEY, clicks INT DEFAULT 0);');
         await pool.query("INSERT INTO click_stats (link_id, clicks) VALUES ('buxoro', 0) ON CONFLICT (link_id) DO NOTHING;");
         await pool.query("INSERT INTO click_stats (link_id, clicks) VALUES ('navoiy', 0) ON CONFLICT (link_id) DO NOTHING;");
-        console.log("Ma'lumotlar bazasi muvaffaqiyatli tayyorlandi.");
+        console.log('Ma'lumotlar bazasi tayyor.');
     } catch (err) {
-        console.error("Bazani yaratishda xato bo'ldi:", err.message);
+        console.error('Bazada xato:', err.message);
     }
 }
 
@@ -38,7 +38,7 @@ app.get('/stats', async (req, res) => {
             statistika: statistika
         });
     } catch (err) {
-        res.status(500).json({ xato: "Baza bilan bog'lanishda xato: " + err.message });
+        res.status(500).json({ xato: err.message });
     }
 });
 
@@ -46,17 +46,17 @@ app.get('/:linkId', async (req, res) => {
     const linkId = req.params.linkId.toLowerCase();
     try {
         await initDatabase();
-        const resUpdate = await pool.query('UPDATE click_stats SET clicks = clicks + 1 WHERE link_id = \$1 RETURNING *;', [linkId]);
+        const resUpdate = await pool.query('UPDATE click_stats SET clicks = clicks + 1 WHERE link_id = $1 RETURNING *;', [linkId]);
         if (resUpdate.rowCount === 0) {
-            await pool.query('INSERT INTO click_stats (link_id, clicks) VALUES (\$1, 1);', [linkId]);
+            await pool.query('INSERT INTO click_stats (link_id, clicks) VALUES ($1, 1);', [linkId]);
         }
         res.redirect(TARGET_URL);
     } catch (err) {
-        console.error("Klik yozishda xato:", err.message);
+        console.error('Xato:', err.message);
         res.redirect(TARGET_URL);
     }
 });
 
 app.listen(PORT, () => {
-    console.log(Server ${PORT}-portda eshitilmoqda.);
+    console.log('Server ishga tushdi.');
 });
