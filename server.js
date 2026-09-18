@@ -30,8 +30,8 @@ app.get('/', (req, res) => {
 const TARGET_URL = 'https://play.google.com/store/apps/details?id=com.baxtiyorov.security'; 
 
 // 1. Ilovaga yo'naltirish linki
-app.get('/r/:linkId', async (req, res) => {
-    const linkId = req.params.linkId;
+app.get('/:linkId', async (req, res) => {
+    const linkId = req.params.linkId.toLowerCase();
     try {
         await initDatabase(); // Bazani tekshirib olish
         const resUpdate = await pool.query("UPDATE click_stats SET clicks = clicks + 1 WHERE link_id = $1 RETURNING *;", [linkId]);
