@@ -10,12 +10,12 @@ const pool = new Pool({
 
 async function initDatabase() {
     try {
-        await pool.query('CREATE TABLE IF NOT EXISTS click_stats (link_id VARCHAR(50) PRIMARY KEY, clicks INT DEFAULT 0);');
+        await pool.query("CREATE TABLE IF NOT EXISTS click_stats (link_id VARCHAR(50) PRIMARY KEY, clicks INT DEFAULT 0);");
         await pool.query("INSERT INTO click_stats (link_id, clicks) VALUES ('buxoro', 0) ON CONFLICT (link_id) DO NOTHING;");
         await pool.query("INSERT INTO click_stats (link_id, clicks) VALUES ('navoiy', 0) ON CONFLICT (link_id) DO NOTHING;");
-        console.log('Ma'lumotlar bazasi tayyor.');
+        console.log("Database ready");
     } catch (err) {
-        console.error('Bazada xato:', err.message);
+        console.error("Database error:", err.message);
     }
 }
 
@@ -28,17 +28,17 @@ app.get('/', (req, res) => {
 app.get('/stats', async (req, res) => {
     try {
         await initDatabase();
-        const result = await pool.query('SELECT link_id, clicks FROM click_stats;');
+        const result = await pool.query("SELECT link_id, clicks FROM click_stats;");
         const statistika = {};
         result.rows.forEach(row => {
             statistika[row.link_id] = row.clicks;
         });
         res.json({
-            tizim: "Havolar statistikasi",
-            statistika: statistika
+            system: "Click Statistics",
+            data: statistika
         });
     } catch (err) {
-        res.status(500).json({ xato: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -46,17 +46,19 @@ app.get('/:linkId', async (req, res) => {
     const linkId = req.params.linkId.toLowerCase();
     try {
         await initDatabase();
-        const resUpdate = await pool.query('UPDATE click_stats SET clicks = clicks + 1 WHERE link_id = $1 RETURNING *;', [linkId]);
+        
+        const resUpdate = await pool.query("UPDATE click_stats SET clicks = clicks + 1 WHERE link_id = '" + linkId + "' RETURNING *;");
+        
         if (resUpdate.rowCount === 0) {
-            await pool.query('INSERT INTO click_stats (link_id, clicks) VALUES ($1, 1);', [linkId]);
+            await pool.query("INSERT INTO click_stats (link_id, clicks) VALUES ('" + linkId + "', 1);");
         }
         res.redirect(TARGET_URL);
     } catch (err) {
-        console.error('Xato:', err.message);
+        console.error("Error:", err.message);
         res.redirect(TARGET_URL);
     }
 });
 
 app.listen(PORT, () => {
-    console.log('Server ishga tushdi.');
+    console.log("Server running");
 });
